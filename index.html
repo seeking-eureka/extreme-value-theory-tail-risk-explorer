@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Extreme Value Theory Tail Risk Explorer</title>
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<meta name="description" content="Peaks-over-threshold, a Generalized Pareto fit, and why the lognormal understates your worst year. A learning app for operational tail risk.">
+<link rel="canonical" href="https://seeking-eureka.com/extreme-value-theory-tail-risk-explorer/">
+<!-- Link previews (Open Graph: LinkedIn, Facebook, Substack, Slack, iMessage) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Seeking Eureka">
+<meta property="og:title" content="Extreme Value Theory Tail Risk Explorer">
+<meta property="og:description" content="Peaks-over-threshold, a Generalized Pareto fit, and why the lognormal understates your worst year. A learning app for operational tail risk.">
+<meta property="og:url" content="https://seeking-eureka.com/extreme-value-theory-tail-risk-explorer/">
+<meta property="og:image" content="https://seeking-eureka.com/extreme-value-theory-tail-risk-explorer/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Extreme Value Theory Tail Risk Explorer showing a Generalized Pareto tail fit against normal and lognormal fits on a log-log loss plot">
+<!-- X / Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Extreme Value Theory Tail Risk Explorer">
+<meta name="twitter:description" content="Peaks-over-threshold, a Generalized Pareto fit, and why the lognormal understates your worst year. A learning app for operational tail risk.">
+<meta name="twitter:image" content="https://seeking-eureka.com/extreme-value-theory-tail-risk-explorer/preview.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="userguide.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Extreme Value Theory Tail Risk Explorer</h1>
+      <p class="sub">Peaks-over-threshold, a Generalized Pareto fit, and why the lognormal understates your worst year.</p>
+    </div>
+    <div class="brand">
+      <a class="brand-logo" href="https://seeking-eureka.com/" target="_blank" rel="noopener" aria-label="Seeking Eureka home">
+        <img src="./assets/seeking-eureka-logo-reversed.svg" alt="Seeking Eureka" width="827" height="135">
+      </a>
+      <span class="tag mono">EVT · PEAKS OVER THRESHOLD</span>
+    </div>
+  </header>
+
+  <div class="tabbar">
+    <nav class="tabs" role="tablist">
+      <button class="tab active" role="tab" aria-selected="true" data-tab="sim">Simulator</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="guide">Guide &amp; Math</button>
+    </nav>
+    <button type="button" class="ug-open-btn" data-userguide-open>
+      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></svg>
+      User Guide
+    </button>
+  </div>
+
+  <!-- ================= SIMULATOR ================= -->
+  <main id="tab-sim" class="tabpanel">
+    <div class="grid">
+      <div class="col-left">
+        <!-- Loss data -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Loss Data: Internal Loss Log</h2>
+            <button class="link-btn danger" id="resetBtn">Reset defaults</button>
+          </div>
+          <p class="hint top-hint">Ten years of operational losses at a mid-size buy-side firm, at or above the reporting floor. Money is in $K; you can also type 1.5M or 300K.</p>
+          <div class="ctrl-grid">
+            <label>Years of data<input class="num" id="inYears" inputmode="decimal"></label>
+            <label>Reporting floor ($K)<input class="num" id="inFloor" inputmode="decimal"></label>
+          </div>
+          <div class="data-sum mono small" id="dataSum"></div>
+          <details class="weights" id="logBox">
+            <summary><span>Edit the loss log</span><span class="mono muted" id="logCount"></span></summary>
+            <div class="weights-body">
+              <div class="log-tools">
+                <div class="seg" role="group" aria-label="Sort loss log">
+                  <button class="chip on" data-sort="date">By date</button>
+                  <button class="chip" data-sort="size">Largest first</button>
+                </div>
+                <button class="chip" id="addLoss">+ Add loss</button>
+              </div>
+              <div class="table-wrap loss-wrap">
+                <table class="log losslog">
+                  <thead><tr><th>Date</th><th>Event type</th><th>Loss ($K)</th><th></th></tr></thead>
+                  <tbody id="lossBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+          <details class="weights" id="pasteBox">
+            <summary><span>Paste your own losses</span><span class="mono muted">replaces the log</span></summary>
+            <div class="weights-body">
+              <p class="hint" style="margin-top:0">One loss per line. A line can be just an amount, or <span class="mono">date, event type, amount</span> separated by commas or tabs, as copied from a spreadsheet. Nothing leaves your browser.</p>
+              <textarea id="pasteArea" class="num paste" rows="6" spellcheck="false" placeholder="2021-03-17, Unauthorized trading, 8000000&#10;2018-07-30, NAV/pricing error, 3576000&#10;1.9M&#10;450K"></textarea>
+              <div class="paste-row">
+                <label class="small muted">Plain numbers are in <select class="num mini-select" id="pasteUnit"><option value="usd">dollars</option><option value="k">$K</option></select></label>
+                <button class="play-btn paste-btn" id="pasteBtn">Replace loss log</button>
+              </div>
+            </div>
+          </details>
+          <div class="msgs" id="dataMsgs" aria-live="polite"></div>
+        </section>
+
+        <!-- Measures -->
+        <section class="card">
+          <div class="card-head"><h2>What to Measure</h2></div>
+          <div class="ctrl-grid">
+            <label>Return period (years)<input class="num" id="inT" inputmode="decimal"></label>
+            <label>VaR and ES confidence (%)<input class="num" id="inConf" inputmode="decimal"></label>
+          </div>
+          <p class="hint">"1-in-200 years" is the size of a single loss you'd expect to see about once every 200 years. Op-risk capital models have typically used a one-year 99.9% standard.</p>
+          <div class="msgs" id="measMsgs" aria-live="polite"></div>
+        </section>
+
+        <!-- Stepper -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Step Through the Threshold</h2>
+            <span class="mono muted" id="stepLabel"></span>
+          </div>
+          <div class="stepper">
+            <button class="icon-btn" id="prevBtn" aria-label="Lower threshold, more tail points">‹</button>
+            <input type="range" id="stepRange" min="0" max="9" step="1" value="3" aria-label="Threshold step">
+            <button class="icon-btn" id="nextBtn" aria-label="Higher threshold, fewer tail points">›</button>
+            <button class="play-btn" id="playBtn">Play</button>
+          </div>
+          <div class="ticks2 mono" id="stepTicks"></div>
+          <label class="slider-row fine-row"><span>Fine-tune</span><input type="range" id="fineRange" aria-label="Tail points, fine control"><span class="mono" id="fineVal"></span></label>
+          <p class="hint">Moving right raises the threshold and leaves fewer, larger losses in the tail. Lower thresholds use more data but bend the fit toward ordinary losses.</p>
+        </section>
+
+        <!-- KPIs -->
+        <section class="kpis">
+          <div class="kpi">
+            <div class="kpi-label">1 · Shape <span class="nc">ξ</span></div>
+            <div class="kpi-val mono" id="k1"></div>
+            <div class="kpi-sub mono" id="k1s"></div>
+            <div class="kpi-chip" id="k1c"></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label" id="k2l">2 · 99.9% annual VaR</div>
+            <div class="kpi-val mono" id="k2"></div>
+            <div class="kpi-sub mono" id="k2s"></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label" id="k3l">3 · Expected Shortfall</div>
+            <div class="kpi-val mono" id="k3"></div>
+            <div class="kpi-sub mono" id="k3s"></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">4 · Tail points</div>
+            <div class="kpi-val mono" id="k4"></div>
+            <div class="kpi-sub mono" id="k4s"></div>
+            <div class="kpi-chip" id="k4c"></div>
+          </div>
+          <div class="kpi accent kpi-wide">
+            <div class="kpi-label" id="k5l">The 1-in-200-year loss</div>
+            <div class="kpi-val mono" id="k5"></div>
+            <div class="kpi-sub mono" id="k5s"></div>
+            <div class="app-rows mono" id="k5rows"></div>
+            <div class="worst-note small" id="k5w"></div>
+          </div>
+        </section>
+
+        <!-- Stability -->
+        <section class="card cluster-card">
+          <div class="card-head">
+            <h2>How Stable Is This Fit?</h2>
+            <span class="flag mono" id="stabFlag"></span>
+          </div>
+          <p class="small muted" id="stabTxt"></p>
+        </section>
+
+        <!-- Walkthrough -->
+        <section class="card">
+          <div class="card-head">
+            <h2>The Calculation, Step by Step</h2>
+          </div>
+          <ol class="steps" id="steps"></ol>
+        </section>
+      </div>
+
+      <div class="col-right">
+        <!-- Tail plot -->
+        <section class="card">
+          <div class="card-head">
+            <h2>The Tail, on a Log-Log Scale</h2>
+            <div class="seg" role="group" aria-label="Curves to show">
+              <button class="chip on" data-fits="all">All fits</button>
+              <button class="chip" data-fits="gpd">GPD only</button>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <svg id="tailChart" class="chart" viewBox="0 0 640 360" role="img" aria-label="Losses per year at least a given size, with GPD, lognormal and normal fits"></svg>
+            <div class="tip mono" id="tailTip" hidden></div>
+          </div>
+          <div class="legend mono" id="tailLegend">
+            <span><i class="sw dot"></i>Your losses</span>
+            <span><i class="sw main"></i>GPD tail fit</span>
+            <span><i class="sw band"></i>95% range</span>
+            <span><i class="sw faint"></i>Other thresholds</span>
+            <span class="lg-whole"><i class="sw logn"></i>Lognormal, all data</span>
+            <span class="lg-whole"><i class="sw norm"></i>Normal, all data</span>
+          </div>
+        </section>
+
+        <!-- Stability chart -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Threshold Stability</h2>
+            <div class="seg" role="group" aria-label="Metric">
+              <button class="chip on" data-metric="xi">ξ</button>
+              <button class="chip" data-metric="rl" id="mRl">1-in-200</button>
+              <button class="chip" data-metric="var">VaR</button>
+              <button class="chip" data-metric="me">Mean excess</button>
+            </div>
+          </div>
+          <svg id="stabChart" class="chart" viewBox="0 0 640 260" role="img" aria-label="Estimate and 95% range at every threshold"></svg>
+          <div class="legend mono" id="stabLegend"></div>
+        </section>
+
+        <!-- Model comparison -->
+        <section class="card">
+          <div class="card-head"><h2>What Each Model Says</h2><span class="muted small" id="barNote"></span></div>
+          <svg id="barChart" class="chart" viewBox="0 0 640 300" role="img" aria-label="1-in-200 loss, VaR and Expected Shortfall under each model"></svg>
+          <div class="legend mono">
+            <span><i class="sw zbox zn"></i>Normal, all data</span>
+            <span><i class="sw zbox zl"></i>Lognormal, all data</span>
+            <span><i class="sw zbox za"></i>GPD tail</span>
+          </div>
+        </section>
+
+        <!-- Threshold log -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Threshold Log</h2>
+            <span class="muted small">Same data, ten thresholds. Click a row to jump to it.</span>
+          </div>
+          <div class="table-wrap">
+            <table class="log">
+              <thead><tr><th>Tail</th><th>Threshold</th><th><span class="nc">ξ</span> (95%)</th><th id="thRl">1-in-200</th><th>VaR</th><th>ES</th><th>Fit</th></tr></thead>
+              <tbody id="logBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= GUIDE ================= -->
+  <main id="tab-guide" class="tabpanel hidden">
+    <article class="guide">
+      <div id="guideDyn" class="guide-dyn"></div>
+
+      <section class="card">
+        <h2 class="g">10. Things to Try</h2>
+        <ul>
+          <li>Press <b>Play</b> and watch the 1-in-200 loss as the threshold rises. It moves from about $49M at the top 50% down to $15M at the top 25%, back up to $31M at the top 10%, and then jumps to $110M with 15 points, where ξ goes above 1 and Expected Shortfall becomes infinite. Same data, one judgment call.</li>
+          <li>Open the loss log, sort by <b>Largest first</b>, and delete the $8,000K unauthorized-trading loss. At the default threshold, ξ falls from 0.51 to 0.27, the 1-in-200 loss from $14.9M to $5.4M, and the 99.9% VaR from $38M to $12M. The lognormal's answer only moves from $3.4M to $2.8M. One event carries most of what the data says about the tail, which is why a single late-discovered loss matters so much.</li>
+          <li>Now put it back with <b>+ Add loss</b> at $8,000K, then add a second late-discovered loss of $5,000K, the kind of event the IBNR study shows can surface years later. The 1-in-200 loss rises from $14.9M to about $25M, and the 99.9% VaR from $38M to about $70M.</li>
+          <li>Set the <b>return period</b> to 10 years. The GPD says $3.0M, the lognormal $1.4M, and the normal $1.9M. The gap narrows from 4.4× to about 2×, but the lognormal is still below the two losses over $3.5M the firm actually had in 10 years.</li>
+          <li>Raise the <b>reporting floor</b> to $100K. 112 small losses drop out, leaving 88, and the lognormal's 1-in-200 loss moves from $3.4M to $3.9M because its idea of "typical" changed. Now step to the top 50%, which is 44 points. The GPD gives $16.4M, the same as at 44 points with the full log. The tail fit never used those small losses.</li>
+          <li>Switch the stability chart to <b>Mean excess</b>. For a GPD, the average overshoot above a threshold rises in a straight line, shown here as the gold dashed curve on the log axis. Where the dots start following it is a reasonable place for the threshold.</li>
+        </ul>
+        <h3 class="g3">Input rules</h3>
+        <ul>
+          <li>The log needs at least 30 losses at or above the reporting floor, and up to 2,000. Each loss must be above 0.</li>
+          <li>Years of data runs from 1 to 100. Fewer than 5 years gets a soft warning.</li>
+          <li>The return period runs from 2 to 10,000 years, and the confidence level from 90% to 99.99%.</li>
+          <li>The threshold always leaves between 5% and 50% of the losses in the tail, and never fewer than 8 points.</li>
+          <li>If the return period or confidence level asks for a loss smaller than the threshold, the app warns you, because the tail model doesn't cover that range.</li>
+        </ul>
+      </section>
+
+      <section class="card credits">
+        <h2 class="g">11. Sources &amp; Credits</h2>
+        <h3 class="g3">Extreme value theory</h3>
+        <ul>
+          <li><b>A. A. Balkema and L. de Haan (1974), "Residual Life Time at Great Age."</b> <span class="nowrap">Annals of Probability</span> 2(5): 792–804. Half of the theorem behind peaks-over-threshold. <a href="https://doi.org/10.1214/aop/1176996548" target="_blank" rel="noopener">DOI link</a></li>
+          <li><b>James Pickands III (1975), "Statistical Inference Using Extreme Order Statistics."</b> <span class="nowrap">Annals of Statistics</span> 3(1): 119–131. The other half, and the Generalized Pareto tail. <a href="https://doi.org/10.1214/aos/1176343003" target="_blank" rel="noopener">DOI link</a></li>
+          <li><b>A. C. Davison and R. L. Smith (1990), "Models for Exceedances over High Thresholds."</b> <span class="nowrap">Journal of the Royal Statistical Society, Series B</span> 52(3): 393–442. Peaks-over-threshold as a practical method. <a href="https://doi.org/10.1111/j.2517-6161.1990.tb01796.x" target="_blank" rel="noopener">DOI link</a></li>
+          <li><b>Stuart Coles (2001), <span class="nowrap">An Introduction to Statistical Modeling of Extreme Values</span>.</b> Springer. Threshold choice, mean excess and stability plots, return levels, and profile-likelihood intervals. <a href="https://doi.org/10.1007/978-1-4471-3675-0" target="_blank" rel="noopener">DOI link</a></li>
+          <li><b>Paul Embrechts, Claudia Klüppelberg, and Thomas Mikosch (1997), <span class="nowrap">Modelling Extremal Events for Insurance and Finance</span>.</b> Springer. The standard reference for heavy tails in insurance and finance. <a href="https://doi.org/10.1007/978-3-642-33483-2" target="_blank" rel="noopener">DOI link</a></li>
+          <li><b>Alexander J. McNeil, Rüdiger Frey, and Paul Embrechts (2015), <span class="nowrap">Quantitative Risk Management</span>, revised ed.</b> Princeton University Press. GPD-based VaR and Expected Shortfall, and operational risk. <a href="https://press.princeton.edu/books/hardcover/9780691166278/quantitative-risk-management" target="_blank" rel="noopener">Princeton University Press</a></li>
+        </ul>
+        <h3 class="g3">Operational risk</h3>
+        <ul>
+          <li><b>Marco Moscadelli (2004), "The Modelling of Operational Risk: Experience with the Analysis of the Data Collected by the Basel Committee."</b> Banca d'Italia, Temi di discussione 517. Shows that conventional fits understate the high percentiles of bank op-loss data and that peaks-over-threshold fits it well. <a href="https://www.bancaditalia.it/pubblicazioni/temi-discussione/2004/2004-0517/tema_517.pdf" target="_blank" rel="noopener">Banca d'Italia</a></li>
+          <li><b>Klaus Böcker and Claudia Klüppelberg (2005), "Operational VaR: A Closed-Form Approximation."</b> <span class="nowrap">Risk</span>, December, 90–93. The single-loss approximation for annual VaR. <a href="https://www.risk.net/risk-management/operational-risk/1508755/operational-risk-operational-var-closed-form-approximation" target="_blank" rel="noopener">Risk.net</a></li>
+          <li><b>Klaus Böcker and Jacob Sprittulla (2006), "Operational VAR: Meaningful Means."</b> The mean correction used here for ξ below 1. <a href="https://mediatum.ub.tum.de/doc/1072585/1072585.pdf" target="_blank" rel="noopener">TUM mediaTUM</a></li>
+          <li><b>Klaus Böcker (2006), "Operational Risk: Analytical Results When High-Severity Losses Follow a Generalized Pareto Distribution."</b> <span class="nowrap">Journal of Risk</span> 8(4): 117–120. VaR and Expected Shortfall with a GPD tail. <a href="https://www.risk.net/journal-of-risk/2161039/operational-risk-analytical-results-when-high-severity-losses-follow-a-generalized-pareto-distribution-gpd-a-note" target="_blank" rel="noopener">Risk.net</a></li>
+          <li><b>Basel Committee on Banking Supervision, OPE25: Standardised Approach.</b> The current op-risk capital rule, which uses 10 years of internal loss data and a minimum loss threshold. <a href="https://www.bis.org/committees/bcbs/basel-framework/standard/ope/25/inforce/2023-01-01/published/2024-07-05" target="_blank" rel="noopener">bis.org</a></li>
+        </ul>
+        <h3 class="g3">Notes</h3>
+        <ul>
+          <li><b>Illustrative data.</b> The buy-side firm and its 200 losses are synthetic. They don't represent any real firm, incident, or loss history.</li>
+          <li><b>Educational use only.</b> It's a teaching tool for tail risk, not a capital model, and not investment, insurance, or regulatory advice.</li>
+          <li><b>Code and fonts.</b> All math and charts are original vanilla JavaScript and SVG, with no third-party libraries. The fonts are Inter and JetBrains Mono, used under the SIL Open Font License.</li>
+        </ul>
+      </section>
+    </article>
+  </main>
+
+  <footer class="foot muted small">Model: losses above a threshold u are fitted with a Generalized Pareto distribution by maximum likelihood; the 1-in-T loss solves λ<sub>u</sub>·P(X &gt; x) = 1/T; annual VaR and Expected Shortfall use the single-loss approximation with a mean correction. Normal and lognormal fits use all losses.<br>Illustrative data for education only; not a capital model or investment advice. Built by Patrick Lefler · Seeking Eureka. See Guide &amp; Math, section 11, for sources.</footer>
+</div>
+<script src="data.js"></script>
+<script src="evt.js"></script>
+<script src="app.js"></script>
+<script src="userguide.js" defer data-src="UserGuide.md" data-fallback="https://github.com/seeking-eureka/extreme-value-theory-tail-risk-explorer/blob/main/UserGuide.md"></script>
+</body>
+</html>

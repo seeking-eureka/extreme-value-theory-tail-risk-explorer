@@ -1,0 +1,48 @@
+/* userguide.css: in-app User Guide panel. Uses the host app's CSS variables when present. */
+
+.ug-open-btn{display:inline-flex;align-items:center;gap:8px;background:var(--surface,#111826);border:1px solid var(--border-2,#2a3850);color:var(--text,#e6ebf2);border-radius:999px;padding:9px 16px;font:600 14px var(--sans,system-ui,sans-serif);cursor:pointer;white-space:nowrap;transition:border-color .15s,color .15s}
+.ug-open-btn:hover,.ug-open-btn[aria-expanded="true"]{border-color:var(--accent,#6fd3a0);color:var(--accent,#6fd3a0)}
+.ug-open-btn:focus-visible{outline:2px solid var(--accent,#6fd3a0);outline-offset:3px}
+.ug-open-btn svg{flex-shrink:0}
+
+html.ug-lock,html.ug-lock body{overflow:hidden}
+
+.ug-backdrop{position:fixed;inset:0;background:rgba(4,7,12,.62);opacity:0;transition:opacity .2s ease;z-index:1000}
+.ug-backdrop.is-open{opacity:1}
+
+.ug-panel{position:fixed;top:0;right:0;bottom:0;width:min(720px,100vw);display:flex;flex-direction:column;background:var(--bg,#0a0e16);border-left:1px solid var(--border,#1f2a3d);box-shadow:-24px 0 48px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .22s ease;z-index:1001;color:var(--text,#e6ebf2);font-family:var(--sans,system-ui,sans-serif)}
+.ug-panel.is-open{transform:none}
+@media (prefers-reduced-motion:reduce){.ug-panel,.ug-backdrop{transition:none}}
+
+.ug-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:22px 28px 18px;border-bottom:1px solid var(--border,#1f2a3d);background:var(--surface,#111826)}
+.ug-kicker{font:600 11.5px var(--mono,ui-monospace,monospace);letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#8a96a8);margin-bottom:4px}
+.ug-title{margin:0;font-size:20px;line-height:1.3;font-weight:700;color:var(--accent,#6fd3a0);letter-spacing:-.01em}
+.ug-close{flex-shrink:0;display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:transparent;border:1px solid var(--border-2,#2a3850);color:var(--muted,#8a96a8);cursor:pointer}
+.ug-close:hover{color:var(--text,#e6ebf2);border-color:var(--muted,#8a96a8)}
+.ug-close:focus-visible{outline:2px solid var(--accent,#6fd3a0);outline-offset:2px}
+
+.ug-body{flex:1;overflow-y:auto;padding:8px 28px 48px;font-size:15.5px;line-height:1.65;outline:none}
+.ug-body h2{margin:30px 0 10px;font-size:17px;font-weight:700;color:var(--text,#e6ebf2);padding-top:18px;border-top:1px solid var(--border,#1f2a3d)}
+.ug-body h2:first-child{border-top:0;padding-top:0;margin-top:22px}
+.ug-body h3{margin:22px 0 8px;font-size:15.5px;color:var(--text,#e6ebf2)}
+.ug-body p{margin:0 0 14px;color:#c9d2de}
+.ug-body ul,.ug-body ol{margin:0 0 16px;padding-left:22px;color:#c9d2de}
+.ug-body li{margin:0 0 8px}
+.ug-body li::marker{color:var(--accent,#6fd3a0)}
+.ug-body strong{color:var(--text,#e6ebf2);font-weight:600}
+.ug-body a{color:var(--accent,#6fd3a0)}
+.ug-body code{font-family:var(--mono,ui-monospace,monospace);font-size:.9em;background:var(--surface-2,#162033);padding:1px 6px;border-radius:5px}
+.ug-body pre{background:var(--surface,#111826);border:1px solid var(--border,#1f2a3d);border-radius:10px;padding:12px 14px;overflow-x:auto}
+.ug-body pre code{background:none;padding:0}
+.ug-body blockquote{margin:0 0 16px;padding:10px 16px;border-left:3px solid var(--accent,#6fd3a0);background:var(--surface,#111826);border-radius:0 10px 10px 0}
+.ug-body hr{border:0;border-top:1px solid var(--border,#1f2a3d);margin:24px 0}
+.ug-tablewrap{overflow-x:auto;margin:0 0 18px;border:1px solid var(--border,#1f2a3d);border-radius:10px}
+.ug-body table{width:100%;border-collapse:collapse;font-size:14px}
+.ug-body th,.ug-body td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--border,#1f2a3d)}
+.ug-body th{background:var(--surface,#111826);color:var(--muted,#8a96a8);font-weight:600;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+.ug-body tr:last-child td{border-bottom:0}
+
+@media (max-width:640px){
+  .ug-head{padding:18px 18px 14px}
+  .ug-body{padding:4px 18px 40px;font-size:15px}
+}
